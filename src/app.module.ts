@@ -5,7 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma/prisma.service';
 import { BookmarkModule } from './bookmark/bookmark.module';
 import { APP_PIPE } from '@nestjs/core'; // APP_PIPE import
-// import { ValidationPipe } from './common/pipes/validation.pipe';
+import { ValidationPipe } from './common/pipes/validation.pipe';
 
 @Module({
   imports: [
