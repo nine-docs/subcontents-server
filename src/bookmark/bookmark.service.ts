@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service'; // PrismaService 경로 확인
-// import { CreateBookmarkDto } from './dto/create-bookmark.dto'; // DTO 추가
+import { CreateBookmarkDto } from './dto/create-bookmark.dto'; // DTO 추가
 
 @Injectable()
 export class BookmarkService {

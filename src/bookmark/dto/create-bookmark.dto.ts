@@ -1,8 +1,8 @@
-import { Transform } from 'class-transformer';
-import { IsNumber } from 'class-validator';
+import { IsNotEmpty } from 'class-validator';
+import { IsBigInt } from 'src/common/decorators/is-bigint.decorator';
 
 export class CreateBookmarkDto {
-  @Transform(({ value }) => BigInt(value))
-  @IsNumber()
+  @IsNotEmpty()
+  @IsBigInt()
   articleId: bigint;
 }
