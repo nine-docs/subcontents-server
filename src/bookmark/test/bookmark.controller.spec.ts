@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BookmarkController } from './bookmark.controller';
+import { BookmarkController } from '../controller/bookmark.controller';
 
 describe('BookmarkController', () => {
   let controller: BookmarkController;

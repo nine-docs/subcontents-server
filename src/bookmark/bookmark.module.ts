@@ -1,9 +1,16 @@
 import { Module } from '@nestjs/common';
-import { BookmarkController } from './bookmark.controller';
-import { BookmarkService } from './bookmark.service';
+import { BookmarkController } from './controller/bookmark.controller';
+import { BookmarkService } from './service/bookmark.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaBookmarkRepository } from './repository/bookmark.repository';
+import { BOOKMARK_REPOSITORY } from './repository/bookmark.repository.interface';
 
 @Module({
-  controllers: [BookmarkController], // 컨트롤러 등록
-  providers: [BookmarkService], // 서비스 등록
+  controllers: [BookmarkController],
+  providers: [
+    BookmarkService,
+    PrismaService,
+    { provide: BOOKMARK_REPOSITORY, useClass: PrismaBookmarkRepository },
+  ],
 })
 export class BookmarkModule {}

@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class PrismaService implements OnModuleInit, OnModuleDestroy {
-  prisma: PrismaClient;
+  public prisma: PrismaClient; // public으로 변경 (리포지토리에서 사용하기 위함)
 
   constructor() {
     this.prisma = new PrismaClient();
