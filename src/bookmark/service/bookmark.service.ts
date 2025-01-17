@@ -1,50 +1,45 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service'; // PrismaService 경로 확인
-import { CreateBookmarkDto } from '../dto/create-bookmark.dto'; // DTO 추가
-import {
-  BOOKMARK_REPOSITORY,
-  BookmarkRepository,
-} from '../repository/bookmark.repository.interface';
+import { Bookmark, Prisma } from '@prisma/client';
 
 @Injectable()
 export class BookmarkService {
-  constructor(
-    private prisma: PrismaService,
-    @Inject(BOOKMARK_REPOSITORY)
-    private readonly bookmarkRepository: BookmarkRepository,
-  ) {}
+  constructor(private prismaService: PrismaService) {}
 
-  // async create(userId: bigint, createBookmarkDto: CreateBookmarkDto) {
-  //   try {
-  //     this.prisma..findUnique({ where: { id } });
-  //   } catch (error) {
-  //     // 중복 북마크 등의 에러 처리
-  //     console.error(error);
-  //     throw error;
-  //   }
-  // }
+  async createBookmark(userId: number, articleId: number): Promise<Bookmark> {
+    try {
+      if (await this.prismaService.isBookmarkExist(userId, articleId)) {
+        // 유저가 해당 글을 이미 북마크했으면 200번대로 반환하고, 메시지로 문제 알리기
+        throw new Error(); // 여기서 던지거나, 아니면 db에서 에러 발생
+      } else {
+        //존재 안하면 생성
+        return await this.prismaService.createBookmark(userId, articleId);
+      }
+    } catch (error) {
+      // db error
+      throw new ConflictException('이미 존재하는 북마크 정보');
+    }
+  }
 
-  // async findAll(userId: bigint) {
-  //   return await this.prisma.prisma.bookmark.findMany({
-  //     where: { userId },
-  //   });
-  // }
+  async readBookmark(userId: number): Promise<Bookmark[]> {
+    return await this.prismaService.findOwnBookmarks(userId);
+  }
 
-  // async remove(userId: bigint, articleId: bigint) {
-  //   try {
-  //     const bookmark = await this.prisma.prisma.bookmark.deleteMany({
-  //       where: {
-  //         userId,
-  //         articleId,
-  //       },
-  //     });
-  //     if (bookmark.count === 0) {
-  //       throw new NotFoundException('Bookmark not found');
-  //     }
-  //     return bookmark;
-  //   } catch (error) {
-  //     console.error(error);
-  //     throw error;
-  //   }
-  // }
+  async deleteBookmark(
+    userId: number,
+    articleId: number,
+  ): Promise<Prisma.BatchPayload> {
+    try {
+      if (await this.prismaService.isBookmarkExist(userId, articleId)) {
+        //존재한다면 삭제
+        return await this.prismaService.deleteBookmark(userId, articleId);
+      } else {
+        // 해당 북마크가 없으면 200번대로 반환하고, 메시지로 문제 알리기
+        throw new Error();
+      }
+    } catch (error) {
+      // db error
+      throw new ConflictException('존재하지 않는 북마크 정보');
+    }
+  }
 }

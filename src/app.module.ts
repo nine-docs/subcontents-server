@@ -5,7 +5,6 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma/prisma.service';
 import { BookmarkModule } from './bookmark/bookmark.module';
 import { APP_PIPE } from '@nestjs/core'; // APP_PIPE import
-import { ValidationPipe } from './common/pipes/validation.pipe';
 
 @Module({
   imports: [
@@ -16,13 +15,6 @@ import { ValidationPipe } from './common/pipes/validation.pipe';
     BookmarkModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    PrismaService,
-    {
-      provide: APP_PIPE, // 전역 파이프 등록
-      useClass: ValidationPipe,
-    },
-  ],
+  providers: [AppService, PrismaService],
 })
 export class AppModule {}
