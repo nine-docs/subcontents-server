@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma/prisma.service';
 import { BookmarkModule } from './bookmark/bookmark.module';
-import { APP_PIPE } from '@nestjs/core'; // APP_PIPE import
+import { ReplyModule } from './reply/reply.module';
 
 @Module({
   imports: [
@@ -13,6 +13,7 @@ import { APP_PIPE } from '@nestjs/core'; // APP_PIPE import
       isGlobal: true, // 전역 모듈로 사용
     }),
     BookmarkModule,
+    ReplyModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

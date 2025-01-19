@@ -6,8 +6,10 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get('hello')
-  hello(@Query('name') name: string = 'World') {
-    return this.appService.getHello(name);
+  @Get('api/v1/subcontents/health')
+  hello() {
+    return {
+      success: true,
+    };
   }
 }
