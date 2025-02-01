@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
   InternalServerErrorException,
   HttpStatus,
+  ForbiddenException,
 } from '@nestjs/common';
 import { BookmarkService } from '../service/bookmark.service';
 import { BookmarkDto } from '../dto/CreateBookmark.dto';
@@ -75,7 +76,7 @@ export class BookmarkController {
     @Param('userId', ParseIntPipe) userId: number,
   ): Promise<object> {
     try {
-      const bookmarks = await this.bookmarkService.readBookmark(userId);
+      const bookmarks = await this.bookmarkService.getBookmarks(userId);
       const response = bookmarks.map((bookmark) => ({
         id: Number(bookmark.id),
         userId: Number(bookmark.user_id),
@@ -89,7 +90,8 @@ export class BookmarkController {
       };
     } catch (error) {
       console.error(error);
-      throw new InternalServerErrorException('Internal Server Error'); // 500 에러를 던지는 것이 더 적절합니다.
+      //이용자에게 반환하기 위한 상정 이외의 에러
+      throw new InternalServerErrorException();
     }
   }
 
@@ -156,6 +158,8 @@ export class BookmarkController {
         data: { id: Number(responseData.id) },
       };
     } catch (error) {
+      //에러에 걸렸지만, 에러로 간주되지 않는 경우
+      //return과 throw의 차이점은, controller를 호출한 함수의 try에서 예외가 발생하는지의 차이
       if (error.response?.statusCode === HttpStatus.CONFLICT) {
         // ?. 연산자 추가
         return {
@@ -164,16 +168,23 @@ export class BookmarkController {
           data: '이미 존재하는 북마크입니다',
         };
       }
+      //여기서부터 에러처리
       console.error(error);
-      throw new InternalServerErrorException('Internal Server Error');
+      throw new InternalServerErrorException();
     }
   }
 
-  @Delete(':id')
+  @Delete(':userId/:id')
   @ApiOperation({
     summary: '북마크 삭제',
     description: '특정 사용자의 북마크를 삭제합니다.',
   })
+  @ApiParam({
+    name: 'userId',
+    description: '유저 PKEY',
+    type: Number,
+    example: 1,
+  }) // userId 파라미터 설명
   @ApiParam({
     name: 'id',
     description: '북마크 PKEY',
@@ -213,23 +224,37 @@ export class BookmarkController {
     status: HttpStatus.INTERNAL_SERVER_ERROR,
     description: '서버 오류',
   }) // 500 에러 추가
-  async deleteBookmark(@Param('id', ParseIntPipe) id: number): Promise<Object> {
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: '권한 없는 삭제 요청',
+  }) // 500 에러 추가
+  async deleteBookmark(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<Object> {
     try {
-      const deleteResult = await this.bookmarkService.deleteBookmark(id);
-      if (deleteResult.count === 0) {
-        return {
-          success: false,
-          errorCode: null,
-          data: '이미 삭제된 북마크입니다',
-        };
-      }
+      await this.bookmarkService.deleteBookmark(userId, id);
       return {
         success: true,
         errorCode: null,
         data: '북마크를 성공적으로 삭제했습니다.',
       };
     } catch (error) {
-      throw new InternalServerErrorException('Internal Server Error');
+      if (error.response?.statusCode === HttpStatus.NOT_FOUND) {
+        // ?. 연산자 추가
+        return {
+          success: false,
+          errorCode: null,
+          data: '존재하지 않는 북마크입니다.',
+        };
+      }
+
+      console.error(error);
+      //에러의 종류를 나눠서 처리
+      if (error.response?.statusCode === HttpStatus.FORBIDDEN) {
+        throw new ForbiddenException('권한이 없는 북마크 접근');
+      }
+      throw new InternalServerErrorException();
     }
   }
 }
