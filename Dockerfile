@@ -1,18 +1,25 @@
-# STEP 1: ts빌드
-FROM node:16 AS builder
+FROM node:18 AS builder
 WORKDIR /app
-COPY package*.json ./  
-RUN npm install --omit=dev 
+COPY package*.json ./
+RUN npm install --legacy-peer-deps
 COPY . .
+
+RUN npx prisma generate
+
 RUN npm run build
 
-# STEP 2: js빌드 및 실행
-FROM node:16-alpine
+FROM node:18-alpine
 WORKDIR /app
 ENV NODE_ENV production
-COPY --from=builder /app/dist ./dist
 
-RUN apk add --no-cache tini
+RUN apk add --no-cache openssl tini
+
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/prisma ./prisma
+
 ENTRYPOINT ["/sbin/tini", "--"]
 EXPOSE 3000
-CMD ["npm", "start:prod"]
+
+# 환경 변수를 통한 DB 연결 설정 (docker-compose.yml 등에서 설정)
+CMD ["node", "dist/main"]
