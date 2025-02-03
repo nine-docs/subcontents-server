@@ -29,6 +29,13 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     return await this.prisma.bookmark.findMany({ where: { user_id: userId } });
   }
 
+  async isBookmark(userId: number, articleId: number): Promise<Bookmark> {
+    const data = await this.prisma.bookmark.findFirst({
+      where: { user_id: userId, article_id: articleId },
+    });
+    return data;
+  }
+
   // 북마크의 소유자를 확인
   async isOwnedBookmark(userId: number, bookmarkId: number): Promise<boolean> {
     const dataCount = await this.prisma.bookmark.count({

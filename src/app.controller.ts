@@ -6,7 +6,7 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get('api/v1/subcontents/health')
+  @Get('health')
   hello() {
     return {
       success: true,

@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma/prisma.service';
 import { BookmarkModule } from './bookmark/bookmark.module';
 import { ReplyModule } from './reply/reply.module';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ReplyModule } from './reply/reply.module';
     }),
     BookmarkModule,
     ReplyModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

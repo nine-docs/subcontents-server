@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service'; // PrismaService 경로 확인
+import { PrismaService } from '../prisma/prisma.service'; // PrismaService 경로 확인
 import { Bookmark, Prisma } from '@prisma/client';
 
 @Injectable()
@@ -25,6 +25,10 @@ export class BookmarkService {
 
   async getBookmarks(userId: number): Promise<Bookmark[]> {
     return await this.prismaService.findOwnBookmarks(userId);
+  }
+
+  async getBookmark(userId: number, articleId: number): Promise<Bookmark> {
+    return await this.prismaService.isBookmark(userId, articleId);
   }
 
   async deleteBookmark(

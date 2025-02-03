@@ -1,12 +1,12 @@
 import { IsInt, IsNotEmpty, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateBookmarkDto {
-  @ApiProperty({ description: '게시글 ID', example: 123 })
+export class DeleteBookmarkDto {
+  @ApiProperty({ description: '북마크 ID', example: 1 })
   @IsNotEmpty()
   @IsNumber()
   @IsInt()
-  articleId: number;
+  id: number;
 
   @ApiProperty({ description: '유저 ID', example: 1 })
   @IsNotEmpty()
