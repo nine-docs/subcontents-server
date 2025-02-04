@@ -27,7 +27,7 @@ import { DeleteCommentDto } from './dto/DeleteComment.dto';
 import { UpdateCommentDto } from './dto/UpdateComment.dto';
 
 @Controller('comment')
-@ApiTags('Bookmark API') // API 태그 추가
+@ApiTags('Comment API') // API 태그 추가
 @UsePipes(new ValidationPipe())
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
@@ -38,7 +38,7 @@ export class CommentController {
   })
   @ApiBody({
     type: CreateCommentDto, // 요청 본문 DTO
-    description: '삭제할 북마크 정보',
+    description: '생성할 댓글 정보',
     schema: {
       // 스키마 추가 (선택 사항)
       example: {
@@ -261,7 +261,7 @@ export class CommentController {
     schema: {
       // 스키마 추가 (선택 사항)
       example: {
-        id: 1,
+        commentId: 1,
         userId: 1,
         content: '댓글 내용',
       },

@@ -4,7 +4,7 @@ import {
   OnModuleDestroy,
   NotFoundException,
 } from '@nestjs/common';
-import { Bookmark, Comment, Prisma, PrismaClient } from '@prisma/client';
+import { Bookmark, Comment, Prisma, PrismaClient, Reply } from '@prisma/client';
 
 @Injectable()
 export class PrismaService implements OnModuleInit, OnModuleDestroy {
@@ -81,7 +81,7 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   // 댓글 리스트 반환 (페이지네이션)
   async getCommentsByCursor(
     articleId: number,
-    cursor: number | null,
+    cursor: number,
     limit: number,
   ): Promise<Comment[]> {
     // created 순이 아닌, pkey 순서대로.
@@ -148,4 +148,91 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   }
 
   //Reply
+  async createReply(
+    userId: number,
+    commentId: number,
+    content: string,
+  ): Promise<Reply> {
+    return this.prisma.$transaction(async (tx) => {
+      const reply = await tx.reply.create({
+        data: { user_id: userId, comment_id: commentId, content: content },
+      });
+
+      await tx.comment.update({
+        where: { id: commentId },
+        data: {
+          reply_count: {
+            increment: 1,
+          },
+        },
+      });
+
+      return reply; // reply 반환
+    });
+  }
+
+  async getReplysByCursor(
+    commentId: number,
+    cursor: number,
+    limit: number,
+  ): Promise<Reply[]> {
+    // created 순이 아닌, pkey 순서대로.
+    const where = {
+      comment_id: commentId,
+      ...(cursor && { id: { gt: cursor } }), // cursor가 있는 경우, id가 cursor보다 큰 데이터만 조회
+    };
+    return await this.prisma.reply.findMany({
+      where,
+      take: limit, // limit 개수만큼 조회
+      orderBy: { id: 'asc' }, // id 기준으로 오름차순 정렬 (cursor 기반 페이지네이션에 필수)
+    });
+  }
+
+  async isReplyExist(replyId: number): Promise<boolean> {
+    if ((await this.prisma.reply.count({ where: { id: replyId } })) > 0)
+      return true; // 해당 댓글이 존재하면 true 반환
+    else return false;
+  }
+
+  async isOwnedReply(replyId: number, userId: number): Promise<boolean> {
+    const dataCount = await this.prisma.comment.count({
+      where: { user_id: userId, id: replyId },
+    });
+    return dataCount > 0;
+  }
+
+  async updateReply(replyId: number, content: string): Promise<Reply> {
+    return await this.prisma.reply.update({
+      where: { id: replyId }, // id를 기준으로 댓글 검색
+      data: { content: content }, // 수정할 내용
+    });
+  }
+
+  async deleteReply(replyId: number) {
+    let deleteResult: Reply;
+    await this.prisma.$transaction(async (tx) => {
+      deleteResult = await tx.reply.delete({
+        where: { id: replyId },
+      });
+
+      const updatedComment = await tx.comment.update({
+        where: { id: replyId },
+        data: {
+          reply_count: {
+            decrement: 1,
+          },
+        },
+      });
+
+      if (
+        Number(updatedComment.reply_count) === 0 &&
+        updatedComment.deleted_at !== null
+      ) {
+        await tx.comment.delete({
+          where: { id: updatedComment.id },
+        });
+      }
+    });
+    return deleteResult;
+  }
 }

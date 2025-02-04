@@ -41,7 +41,7 @@ export class CommentService {
     const nextCursor =
       responseData.length > 0
         ? responseData[responseData.length - 1].commentId
-        : 0;
+        : null;
     return {
       cursor: nextCursor,
       items: responseData,
@@ -71,6 +71,7 @@ export class CommentService {
   }
 
   async deleteComment(commentId: number, userId: number) {
+    //Hard Delete + Soft delete
     if (
       !(await this.prismaService.isCommentExist(commentId)) ||
       (await this.prismaService.isSoftDeleted(commentId))
@@ -85,10 +86,12 @@ export class CommentService {
     //0이 아니라면, soft delete
 
     if ((await this.prismaService.getCommentReplyCount(commentId)) <= 0) {
+      //hard delete
       try {
         this.prismaService.hardDeleteComment(commentId);
       } catch (error) {
         if (error.code === 'P2025') {
+          //사실 위에서 방지함 - 코멘트 존재 (하드딜리트 확인), 소프트 딜리트 확인 문장
           throw new NotFoundException(`Comment with id ${commentId} not found`);
         }
         throw error; // 다른 종류의 오류는 그대로 던짐
