@@ -1,4 +1,9 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  NotFoundException,
+} from '@nestjs/common';
 import { Bookmark, Comment, Prisma, PrismaClient } from '@prisma/client';
 
 @Injectable()
@@ -61,6 +66,8 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   }
 
   //Comment
+
+  //Comment 생성
   async createComment(
     userId: number,
     articleId: number,
@@ -71,10 +78,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  //Reply
-  async getComments(
-    articleId: bigint,
-    cursor: bigint | null,
+  // 댓글 리스트 반환 (페이지네이션)
+  async getCommentsByCursor(
+    articleId: number,
+    cursor: number | null,
     limit: number,
   ): Promise<Comment[]> {
     // created 순이 아닌, pkey 순서대로.
@@ -88,4 +95,57 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
       orderBy: { id: 'asc' }, // id 기준으로 오름차순 정렬 (cursor 기반 페이지네이션에 필수)
     });
   }
+
+  //해당 댓글의 답글개수 확인
+  async getCommentReplyCount(commentId: number): Promise<number> {
+    return Number(
+      (await this.prisma.comment.findUnique({ where: { id: commentId } }))
+        .reply_count,
+    );
+  }
+
+  async isOwnedComment(commentId: number, userId: number): Promise<boolean> {
+    const dataCount = await this.prisma.comment.count({
+      where: { user_id: userId, id: commentId },
+    });
+    return dataCount > 0;
+  }
+
+  async updateComment(commentId: number, content: string) {
+    return await this.prisma.comment.update({
+      where: { id: commentId }, // id를 기준으로 댓글 검색
+      data: { content: content }, // 수정할 내용
+    });
+  }
+
+  async hardDeleteComment(commentId: number): Promise<Object> {
+    //진짜로 제거
+    return await this.prisma.comment.delete({
+      where: { id: commentId },
+    });
+  }
+
+  async softDeleteComment(commentId: number) {
+    return await this.prisma.comment.update({
+      where: { id: commentId },
+      data: { deleted_at: new Date() },
+    });
+  }
+
+  async isSoftDeleted(commentId: number): Promise<boolean> {
+    if (
+      (await this.prisma.comment.findUnique({ where: { id: commentId } }))
+        .deleted_at === null
+    )
+      return false;
+    else return true;
+  }
+
+  async isCommentExist(commentId: number): Promise<boolean> {
+    if ((await this.prisma.comment.count({ where: { id: commentId } })) > 0)
+      return true; // 해당 댓글이 존재하면 true 반환
+    else return false;
+  }
+
+  //Reply
 }

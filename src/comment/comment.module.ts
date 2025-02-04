@@ -4,7 +4,7 @@ import { CommentController } from './comment.controller';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Module({
-  providers: [CommentService],
-  controllers: [CommentController, PrismaService],
+  providers: [CommentService, PrismaService],
+  controllers: [CommentController],
 })
 export class CommentModule {}

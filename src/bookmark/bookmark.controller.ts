@@ -11,6 +11,7 @@ import {
   HttpStatus,
   ForbiddenException,
   Query,
+  NotFoundException,
 } from '@nestjs/common';
 import { BookmarkService } from './bookmark.service';
 import { CreateBookmarkDto } from './dto/CreateBookmark.dto';
@@ -228,6 +229,8 @@ export class BookmarkController {
         articleId,
       );
       return {
+        // 원래 reposeData에서 받아올 때, 애초에 필요한 데이터만 와야 함. 실수
+
         success: true,
         errorCode: null,
         data: { id: Number(responseData.id) },
@@ -308,7 +311,13 @@ export class BookmarkController {
   ): Promise<Object> {
     try {
       const { id, userId } = deleteBookmarkDto;
-      await this.bookmarkService.deleteBookmark(userId, id);
+      const deleteResult = await this.bookmarkService.deleteBookmark(
+        userId,
+        id,
+      );
+      if (deleteResult.count !== 1) {
+        throw new NotFoundException();
+      }
       return {
         success: true,
         errorCode: null,

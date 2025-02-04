@@ -31,10 +31,7 @@ export class BookmarkService {
     return await this.prismaService.isBookmark(userId, articleId);
   }
 
-  async deleteBookmark(
-    userId: number,
-    id: number,
-  ): Promise<Prisma.BatchPayload> {
+  async deleteBookmark(userId: number, id: number) {
     // 애초에 북마크가 없으면 권한이 있는지도 확인 못함, 즉 반대 순서는 불가능
     // 북마크가 존재하는지 => 없으면 200번대 에러 반환
     // 존재한다면 권한이 내가 가지고 있는지

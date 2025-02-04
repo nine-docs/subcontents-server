@@ -27,6 +27,7 @@ model Comment {
   created_at  DateTime? @default(now()) @db.Timestamp(0)
   updated_at  DateTime? @default(now()) @db.Timestamp(0)
   reply_count BigInt    @default(0)
+  deleted_at  DateTime? @db.Timestamp(0)
 
   @@index([article_id], map: "idx_article_id")
   @@map("comment")
