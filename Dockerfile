@@ -10,7 +10,7 @@ RUN npm run build
 
 FROM node:18-alpine
 WORKDIR /app
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 RUN apk add --no-cache openssl tini
 
