@@ -6,15 +6,25 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service'; // PrismaService 경로 확인
-import { Bookmark, Prisma } from '@prisma/client';
+import { Bookmark } from '@prisma/client';
+import { UtilService } from 'src/utils/util.service';
 
 @Injectable()
 export class BookmarkService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private utilService: UtilService,
+  ) {}
 
-  async createBookmark(userId: number, articleId: number): Promise<Bookmark> {
+  async createBookmark(userId: number, articleId: number): Promise<Object> {
     try {
-      return await this.prismaService.createBookmark(userId, articleId);
+      const data = await this.prismaService.createBookmark(userId, articleId);
+      return {
+        id: Number(data.id),
+        user: Number(data.user_id),
+        articleId: Number(data.article_id),
+        createdAt: this.utilService.formatDateTime(data.created_at),
+      };
     } catch (error) {
       if (error.code == 'P2002') {
         throw new ConflictException();

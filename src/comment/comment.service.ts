@@ -4,10 +4,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UtilService } from 'src/utils/util.service';
 
 @Injectable()
 export class CommentService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private utilService: UtilService,
+  ) {}
 
   async createComment(articleId: number, userId: number, content: string) {
     const creationResult = await this.prismaService.createComment(
@@ -18,7 +22,7 @@ export class CommentService {
     return {
       commentId: Number(creationResult.id),
       content: creationResult.content,
-      createdAt: creationResult.created_at,
+      createdAt: this.utilService.formatDateTime(creationResult.created_at),
     };
   }
 
@@ -35,8 +39,8 @@ export class CommentService {
         count: Number(comment.reply_count),
       },
       content: comment.deleted_at ? null : comment.content,
-      createdAt: comment.created_at,
-      updatedAt: comment.updated_at,
+      createdAt: this.utilService.formatDateTime(comment.created_at),
+      updatedAt: this.utilService.formatDateTime(comment.updated_at),
     }));
     const nextCursor =
       responseData.length > 0
@@ -65,8 +69,8 @@ export class CommentService {
     return {
       commentId: Number(updateResult.id),
       content: updateResult.content,
-      createdAt: updateResult.created_at,
-      updatedAt: updateResult.updated_at,
+      createdAt: this.utilService.formatDateTime(updateResult.created_at),
+      updatedAt: this.utilService.formatDateTime(updateResult.updated_at),
     };
   }
 

@@ -230,10 +230,9 @@ export class BookmarkController {
       );
       return {
         // 원래 reposeData에서 받아올 때, 애초에 필요한 데이터만 와야 함. 실수
-
         success: true,
         errorCode: null,
-        data: { id: Number(responseData.id) },
+        data: responseData,
       };
     } catch (error) {
       //에러에 걸렸지만, 에러로 간주되지 않는 경우

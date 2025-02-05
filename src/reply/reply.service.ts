@@ -5,10 +5,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { UtilService } from 'src/utils/util.service';
 
 @Injectable()
 export class ReplyService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private utilService: UtilService,
+  ) {}
 
   async createReply(commentId: number, userId: number, content: string) {
     const creationResult = await this.prismaService.createReply(
@@ -21,7 +25,7 @@ export class ReplyService {
         replyId: Number(creationResult.id),
         commentId: Number(creationResult.comment_id),
         content: creationResult.content,
-        createdAt: creationResult.created_at,
+        createdAt: this.utilService.formatDateTime(creationResult.created_at),
       };
     } else {
       throw new InternalServerErrorException();
@@ -38,8 +42,8 @@ export class ReplyService {
       replyId: Number(reply.id),
       authorId: Number(reply.user_id),
       content: reply.content,
-      createdAt: reply.created_at,
-      updatedAt: reply.updated_at,
+      createdAt: this.utilService.formatDateTime(reply.created_at),
+      updatedAt: this.utilService.formatDateTime(reply.updated_at),
     }));
     const nextCursor =
       responseData.length > 0
@@ -62,8 +66,8 @@ export class ReplyService {
     return {
       replyId: Number(updateResult.id),
       content: updateResult.content,
-      createdAt: updateResult.created_at,
-      updatedAt: updateResult.updated_at,
+      createdAt: this.utilService.formatDateTime(updateResult.created_at),
+      updatedAt: this.utilService.formatDateTime(updateResult.updated_at),
     };
   }
 
