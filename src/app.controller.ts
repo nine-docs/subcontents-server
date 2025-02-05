@@ -7,7 +7,7 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get('health')
-  helloWorld() {
+  helloWorld1() {
     return {
       success: true,
     };
