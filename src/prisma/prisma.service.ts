@@ -32,7 +32,12 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
 
   // 소유한 북마크 목록 반환
   async findOwnBookmarks(userId: number): Promise<Bookmark[]> {
-    return await this.prisma.bookmark.findMany({ where: { user_id: userId } });
+    return await this.prisma.bookmark.findMany({
+      where: { user_id: userId },
+      orderBy: {
+        id: 'desc', // id 컬럼을 기준으로 내림차순 정렬
+      },
+    });
   }
 
   async isBookmark(userId: number, articleId: number): Promise<Bookmark> {
