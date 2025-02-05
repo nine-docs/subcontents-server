@@ -23,7 +23,6 @@ import {
 } from '@nestjs/swagger';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/CreateComment.dto';
-import { DeleteCommentDto } from './dto/DeleteComment.dto';
 import { UpdateCommentDto } from './dto/UpdateComment.dto';
 
 @Controller('comment')
@@ -111,7 +110,7 @@ export class CommentController {
   })
   @ApiQuery({
     name: 'cursor',
-    description: '커서 댓글 ID',
+    description: '커서 댓글 ID (첫페이지면 0)',
     type: Number,
     example: 1,
   })
@@ -191,16 +190,17 @@ export class CommentController {
     summary: '댓글 삭제',
     description: '댓글을 삭제합니다.',
   })
-  @ApiBody({
-    type: DeleteCommentDto, // 요청 본문 DTO
-    description: '삭제할 댓글정보',
-    schema: {
-      // 스키마 추가 (선택 사항)
-      example: {
-        commentId: 1,
-        userId: 1,
-      },
-    },
+  @ApiQuery({
+    name: 'commentId',
+    description: '댓글 ID',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'userId',
+    description: '이용자 ID',
+    type: Number,
+    example: 10,
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -228,9 +228,9 @@ export class CommentController {
     },
   }) // 201 Created 응답
   async deleteComment(
-    @Body() updateCommentDto: DeleteCommentDto,
+    @Query('commentId', ParseIntPipe) commentId: number,
+    @Query('userId', ParseIntPipe) userId: number,
   ): Promise<object> {
-    const { commentId, userId } = updateCommentDto;
     try {
       await this.commentService.deleteComment(commentId, userId);
       return {
@@ -302,11 +302,15 @@ export class CommentController {
   ): Promise<object> {
     const { commentId, userId, content } = updateCommentDto;
     try {
-      await this.commentService.fixComment(commentId, userId, content);
+      const responseData = await this.commentService.fixComment(
+        commentId,
+        userId,
+        content,
+      );
       return {
         success: true,
         errorCode: null,
-        data: null,
+        data: responseData,
       };
     } catch (error) {
       console.error(error);

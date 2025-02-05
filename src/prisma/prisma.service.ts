@@ -195,7 +195,7 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   }
 
   async isOwnedReply(replyId: number, userId: number): Promise<boolean> {
-    const dataCount = await this.prisma.comment.count({
+    const dataCount = await this.prisma.reply.count({
       where: { user_id: userId, id: replyId },
     });
     return dataCount > 0;
@@ -211,12 +211,14 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   async deleteReply(replyId: number) {
     let deleteResult: Reply;
     await this.prisma.$transaction(async (tx) => {
+      const replyData = await tx.reply.findUnique({ where: { id: replyId } });
+
       deleteResult = await tx.reply.delete({
         where: { id: replyId },
       });
 
       const updatedComment = await tx.comment.update({
-        where: { id: replyId },
+        where: { id: replyData.comment_id },
         data: {
           reply_count: {
             decrement: 1,

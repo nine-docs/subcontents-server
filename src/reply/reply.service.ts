@@ -53,7 +53,7 @@ export class ReplyService {
 
   async fixReply(replyId: number, userId: number, content: string) {
     if (!(await this.prismaService.isReplyExist(replyId))) {
-      throw new NotFoundException(); // soft deleted된 댓글을 한번더 삭제하면 불가능
+      throw new NotFoundException();
     }
     if (!(await this.prismaService.isOwnedReply(replyId, userId))) {
       throw new ForbiddenException();
@@ -74,6 +74,6 @@ export class ReplyService {
     if (!(await this.prismaService.isOwnedReply(replyId, userId))) {
       throw new ForbiddenException();
     }
-    this.prismaService.hardDeleteComment(replyId);
+    await this.prismaService.deleteReply(replyId);
   }
 }

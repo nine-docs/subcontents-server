@@ -88,7 +88,7 @@ export class CommentService {
     if ((await this.prismaService.getCommentReplyCount(commentId)) <= 0) {
       //hard delete
       try {
-        this.prismaService.hardDeleteComment(commentId);
+        await this.prismaService.hardDeleteComment(commentId);
       } catch (error) {
         if (error.code === 'P2025') {
           //사실 위에서 방지함 - 코멘트 존재 (하드딜리트 확인), 소프트 딜리트 확인 문장
@@ -97,7 +97,7 @@ export class CommentService {
         throw error; // 다른 종류의 오류는 그대로 던짐
       }
     } else {
-      if (this.prismaService.softDeleteComment(commentId) === null) {
+      if ((await this.prismaService.softDeleteComment(commentId)) === null) {
         throw new NotFoundException(`Comment with id ${commentId} not found`);
       }
     }

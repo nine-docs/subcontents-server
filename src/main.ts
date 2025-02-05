@@ -2,12 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
-// import { PrismaClient } from '@prisma/client';
-// import { softDeleteMiddleware } from './prisma/prisma.middleware';
-
-// const prisma = new PrismaClient();
-// prisma.$use(softDeleteMiddleware);
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api/v1/subcontents'); // 전역 접두사 설정

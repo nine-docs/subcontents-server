@@ -113,7 +113,7 @@ export class ReplyController {
   })
   @ApiQuery({
     name: 'cursor',
-    description: '커서 답글 ID',
+    description: '커서 답글 ID (첫페이지 : 0)',
     type: Number,
     example: 1,
   })
@@ -160,7 +160,7 @@ export class ReplyController {
     },
   })
   async getReplys(
-    @Query('articleId', ParseIntPipe) commentId: number,
+    @Query('commentId', ParseIntPipe) commentId: number,
     @Query('cursor', ParseIntPipe) cursor: number,
     @Query('limit', ParseIntPipe) limit: number,
   ): Promise<object> {
@@ -188,16 +188,17 @@ export class ReplyController {
     summary: '답글 삭제',
     description: '답글을 삭제합니다.',
   })
-  @ApiBody({
-    type: DeleteReplyDto, // 요청 본문 DTO
-    description: '삭제할 답글정보',
-    schema: {
-      // 스키마 추가 (선택 사항)
-      example: {
-        replyId: 1,
-        userId: 1,
-      },
-    },
+  @ApiQuery({
+    name: 'replyId',
+    description: '답글 ID',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'userId',
+    description: '이용자 ID',
+    type: Number,
+    example: 10,
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -224,8 +225,10 @@ export class ReplyController {
       },
     },
   }) // 201 Created 응답
-  async deleteReply(@Body() deleteReplyDto: DeleteReplyDto): Promise<object> {
-    const { replyId, userId } = deleteReplyDto;
+  async deleteReply(
+    @Query('replyId', ParseIntPipe) replyId: number,
+    @Query('userId', ParseIntPipe) userId: number,
+  ): Promise<object> {
     try {
       await this.replyService.deleteReply(replyId, userId);
       return {
@@ -295,11 +298,15 @@ export class ReplyController {
   async fixReply(@Body() updateReplyDto: UpdateReplyDto): Promise<object> {
     const { replyId, userId, content } = updateReplyDto;
     try {
-      await this.replyService.fixReply(replyId, userId, content);
+      const updateResponse = await this.replyService.fixReply(
+        replyId,
+        userId,
+        content,
+      );
       return {
         success: true,
         errorCode: null,
-        data: null,
+        data: updateResponse,
       };
     } catch (error) {
       console.error(error);

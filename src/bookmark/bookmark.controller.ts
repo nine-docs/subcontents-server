@@ -23,7 +23,7 @@ import {
   ApiBody,
   ApiQuery,
 } from '@nestjs/swagger';
-import { DeleteBookmarkDto } from './dto/DeleteBookmark.dto';
+// import { DeleteBookmarkDto } from './dto/DeleteBookmark.dto';
 
 @ApiTags('Bookmark API') // API 태그 추가
 @Controller('bookmark')
@@ -257,17 +257,17 @@ export class BookmarkController {
     summary: '북마크 삭제',
     description: '특정 사용자의 북마크를 삭제합니다.',
   })
-  @ApiBody({
-    type: CreateBookmarkDto,
-    description: '삭제할 북마크 정보',
-    examples: {
-      '삭제 요청 예시': {
-        value: {
-          id: 1,
-          userId: 123,
-        },
-      },
-    },
+  @ApiQuery({
+    name: 'bookmarkId',
+    description: '북마크 ID',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'userId',
+    description: '이용자 ID',
+    type: Number,
+    example: 1,
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -307,10 +307,10 @@ export class BookmarkController {
     description: '권한 없는 삭제 요청',
   }) // 500 에러 추가
   async deleteBookmark(
-    @Body() deleteBookmarkDto: DeleteBookmarkDto,
+    @Query('bookmarkId', ParseIntPipe) id: number,
+    @Query('userId', ParseIntPipe) userId: number,
   ): Promise<Object> {
     try {
-      const { id, userId } = deleteBookmarkDto;
       const deleteResult = await this.bookmarkService.deleteBookmark(
         userId,
         id,
