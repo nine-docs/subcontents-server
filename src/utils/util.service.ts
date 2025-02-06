@@ -3,7 +3,7 @@ import { formatInTimeZone } from 'date-fns-tz';
 
 @Injectable()
 export class UtilService {
-  formatDateTime(dateTime) {
+  formatDateTime(dateTime: string | number | Date) {
     const timeZone = 'Asia/Seoul';
     const date = new Date(dateTime);
 

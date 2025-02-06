@@ -6,9 +6,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   public prisma: PrismaClient; // public으로 변경 (리포지토리에서 사용하기 위함)
 
   constructor() {
-    this.prisma = new PrismaClient();
+    this.prisma = new PrismaClient({
+      // log: ['query', 'info', 'warn', 'error'], // 쿼리 로깅 활성화
+    });
   }
-
   async onModuleInit() {
     await this.prisma.$connect();
   }
@@ -112,9 +113,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   }
 
   async updateComment(commentId: number, content: string) {
+    const now = new Date();
     return await this.prisma.comment.update({
       where: { id: commentId }, // id를 기준으로 댓글 검색
-      data: { content: content }, // 수정할 내용
+      data: { content: content, updated_at: new Date(now) }, // 수정할 내용
     });
   }
 
@@ -206,9 +208,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   }
 
   async updateReply(replyId: number, content: string): Promise<Reply> {
+    const now = new Date();
     return await this.prisma.reply.update({
       where: { id: replyId }, // id를 기준으로 댓글 검색
-      data: { content: content }, // 수정할 내용
+      data: { content: content, updated_at: new Date(now) }, // 수정할 내용
     });
   }
 
