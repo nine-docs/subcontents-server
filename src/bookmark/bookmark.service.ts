@@ -20,8 +20,8 @@ export class BookmarkService {
     try {
       const data = await this.prismaService.createBookmark(userId, articleId);
       return {
-        id: Number(data.id),
-        user: Number(data.user_id),
+        bookmarkId: Number(data.id),
+        userId: Number(data.user_id),
         articleId: Number(data.article_id),
         createdAt: this.utilService.formatDateTime(data.created_at),
       };
@@ -33,8 +33,14 @@ export class BookmarkService {
     }
   }
 
-  async getBookmarks(userId: number): Promise<Bookmark[]> {
-    return await this.prismaService.findOwnBookmarks(userId);
+  async getBookmarks(userId: number): Promise<Object[]> {
+    const bookmarks = await this.prismaService.findOwnBookmarks(userId);
+    return bookmarks.map((bookmark) => ({
+      id: Number(bookmark.id),
+      userId: Number(bookmark.user_id),
+      articleId: Number(bookmark.article_id),
+      createdAt: bookmark.created_at,
+    }));
   }
 
   async getBookmark(userId: number, articleId: number): Promise<Bookmark> {

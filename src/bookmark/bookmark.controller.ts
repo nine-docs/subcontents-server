@@ -78,13 +78,7 @@ export class BookmarkController {
     @Query('userId', ParseIntPipe) userId: number,
   ): Promise<object> {
     try {
-      const bookmarks = await this.bookmarkService.getBookmarks(userId);
-      const response = bookmarks.map((bookmark) => ({
-        id: Number(bookmark.id),
-        userId: Number(bookmark.user_id),
-        articleId: Number(bookmark.article_id),
-        createdAt: bookmark.created_at,
-      }));
+      const response = await this.bookmarkService.getBookmarks(userId);
       return {
         success: true,
         errorCode: null,
