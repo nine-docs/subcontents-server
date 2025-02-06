@@ -1,6 +1,8 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -105,5 +107,35 @@ export class CommentService {
         throw new NotFoundException(`Comment with id ${commentId} not found`);
       }
     }
+  }
+
+  async addCommentRecommend(commentId: number, userId: number) {
+    // if (
+    //   !(await this.prismaService.isCommentExist(commentId)) ||
+    //   (await this.prismaService.isCommentSoftDeleted(commentId))
+    // ) {
+    //   throw new NotFoundException(); // soft deleted된 댓글을 한번더 삭제하면 불가능
+    // }
+    // try {
+    //   const data = await this.prismaService.addCommentRecommend(
+    //     commentId,
+    //     userId,
+    //   );
+    //   return {
+    //     bookmarkId: Number(data.id),
+    //     userId: Number(data.user_id),
+    //     articleId: Number(data.article_id),
+    //     createdAt: this.utilService.formatDateTime(data.created_at),
+    //   };
+    // } catch (error) {
+    //   if (error.code == 'P2002') {
+    //     throw new ConflictException();
+    //   }
+    //   throw new InternalServerErrorException();
+    // }
+  }
+
+  async deleteCommentRecommend(commentId: number, userId: number) {
+    // return;
   }
 }

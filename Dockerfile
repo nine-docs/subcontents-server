@@ -1,4 +1,7 @@
 FROM node:18 AS builder
+
+ENV TZ=UTC
+
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps

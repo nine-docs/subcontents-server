@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Bookmark, Comment, Prisma, PrismaClient, Reply } from '@prisma/client';
 
 @Injectable()
@@ -151,6 +146,10 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
       return true; // 해당 댓글이 존재하면 true 반환
     else return false;
   }
+
+  async addCommentRecommend(commentId: number, userId: number) {}
+
+  async deleteCommentRecommend() {}
 
   //Reply
   async createReply(
