@@ -137,7 +137,7 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  async isSoftDeleted(commentId: number): Promise<boolean> {
+  async isCommentSoftDeleted(commentId: number): Promise<boolean> {
     if (
       (await this.prisma.comment.findUnique({ where: { id: commentId } }))
         .deleted_at === null

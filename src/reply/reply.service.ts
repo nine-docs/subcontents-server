@@ -15,6 +15,9 @@ export class ReplyService {
   ) {}
 
   async createReply(commentId: number, userId: number, content: string) {
+    if (!(await this.prismaService.isCommentExist(commentId))) {
+      throw new NotFoundException();
+    }
     const creationResult = await this.prismaService.createReply(
       userId,
       commentId,
@@ -33,6 +36,9 @@ export class ReplyService {
   }
 
   async getReplys(commentId: number, cursor: number, limit: number) {
+    if (!(await this.prismaService.isCommentExist(commentId))) {
+      throw new NotFoundException();
+    }
     const replyList = await this.prismaService.getReplysByCursor(
       commentId,
       cursor,

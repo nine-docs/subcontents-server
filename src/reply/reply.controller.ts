@@ -96,6 +96,9 @@ export class ReplyController {
       };
     } catch (error) {
       console.error(error);
+      if (error.response?.statusCode === HttpStatus.NOT_FOUND) {
+        throw new NotFoundException('잘못된 접근'); //삭제된 데이터
+      } // 삭제 트랜잭션 실패는 InternalServer Error
       throw new InternalServerErrorException();
     }
   }
@@ -178,7 +181,8 @@ export class ReplyController {
     } catch (error) {
       console.error(error);
       if (error.response?.statusCode === HttpStatus.NOT_FOUND) {
-      }
+        throw new NotFoundException('잘못된 접근'); //삭제된 데이터
+      } // 삭제 트랜잭션 실패는 InternalServer Error
       throw new InternalServerErrorException();
     }
   }

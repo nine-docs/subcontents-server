@@ -55,7 +55,7 @@ export class CommentService {
   async fixComment(commentId: number, userId: number, content: string) {
     if (
       !(await this.prismaService.isCommentExist(commentId)) ||
-      (await this.prismaService.isSoftDeleted(commentId))
+      (await this.prismaService.isCommentSoftDeleted(commentId))
     ) {
       throw new NotFoundException(); // soft deleted된 댓글을 한번더 삭제하면 불가능
     }
@@ -78,7 +78,7 @@ export class CommentService {
     //Hard Delete + Soft delete
     if (
       !(await this.prismaService.isCommentExist(commentId)) ||
-      (await this.prismaService.isSoftDeleted(commentId))
+      (await this.prismaService.isCommentSoftDeleted(commentId))
     ) {
       throw new NotFoundException(); // soft deleted된 댓글을 한번더 삭제하면 불가능
     }
