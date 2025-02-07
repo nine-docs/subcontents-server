@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -85,5 +86,27 @@ export class ReplyService {
       throw new ForbiddenException();
     }
     await this.prismaService.deleteReply(replyId);
+  }
+
+  async addReplyRecommend(replyId: number, userId: number) {
+    if (!(await this.prismaService.isReplyExist(replyId))) {
+      throw new NotFoundException();
+    }
+
+    if (await this.prismaService.isReplyRecommendedByUser(replyId, userId)) {
+      // 이미 추천했다면 권한 없음.
+      throw new ConflictException();
+    }
+    const data = await this.prismaService.addReplyRecommend(replyId, userId);
+    return {
+      // data 반환
+    };
+  }
+
+  async deleteReplyRecommend(replyId: number, userId: number) {
+    if (!(await this.prismaService.isReplyExist(replyId))) {
+      throw new NotFoundException();
+    }
+    return;
   }
 }
