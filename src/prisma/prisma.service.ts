@@ -150,9 +150,75 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     else return false;
   }
 
-  async addCommentRecommend(commentId: number, userId: number) {}
+  async isCommentRecommendedByUser(
+    commentId: number,
+    userId: number,
+  ): Promise<boolean> {
+    if (
+      (await this.prisma.commentRecommend.count({
+        where: { comment_id: commentId, user_id: userId },
+      })) > 0
+    ) {
+      return true;
+    } else return false;
+  }
 
-  async deleteCommentRecommend() {}
+  async addCommentRecommend(
+    commentId: number,
+    userId: number,
+  ): Promise<Comment> {
+    let responseData: Comment;
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.commentRecommend.create({
+          data: { user_id: userId, comment_id: commentId },
+        });
+
+        responseData = await tx.comment.update({
+          where: { id: commentId },
+          data: {
+            recommend_count: {
+              increment: 1,
+            },
+          },
+        });
+      });
+      return responseData;
+    } catch (error) {
+      // 트랜잭션 실패 시 예외 처리
+      console.error('Error adding comment recommendation:', error);
+      // 필요에 따라 다른 예외 처리 로직 추가 (예: 사용자에게 에러 메시지 반환)
+      throw error; // 에러를 다시 던져서 상위 레벨에서 처리하도록 함
+    }
+  }
+
+  async deleteCommentRecommend(commentId: number, userId: number) {
+    console.log('??');
+
+    let responseData: Comment;
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.commentRecommend.deleteMany({
+          where: { user_id: userId, comment_id: commentId },
+        });
+
+        responseData = await tx.comment.update({
+          where: { id: commentId },
+          data: {
+            recommend_count: {
+              decrement: 1,
+            },
+          },
+        });
+      });
+      return responseData;
+    } catch (error) {
+      // 트랜잭션 실패 시 예외 처리
+      console.error('Error adding comment recommendation:', error);
+      // 필요에 따라 다른 예외 처리 로직 추가 (예: 사용자에게 에러 메시지 반환)
+      throw error; // 에러를 다시 던져서 상위 레벨에서 처리하도록 함
+    }
+  }
 
   //Reply
   async createReply(
