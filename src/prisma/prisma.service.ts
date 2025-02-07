@@ -116,7 +116,8 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     const now = new Date();
     return await this.prisma.comment.update({
       where: { id: commentId }, // id를 기준으로 댓글 검색
-      data: { content: content, updated_at: new Date(now) }, // 수정할 내용
+      data: { content: content }, // 수정할 내용
+      // , updated_at: new Date(now)
     });
   }
 
@@ -211,7 +212,8 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     const now = new Date();
     return await this.prisma.reply.update({
       where: { id: replyId }, // id를 기준으로 댓글 검색
-      data: { content: content, updated_at: new Date(now) }, // 수정할 내용
+      data: { content: content }, // 수정할 내용
+      //, updated_at: new Date(now)
     });
   }
 
