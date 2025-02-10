@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   ForbiddenException,
   Get,
@@ -121,6 +122,12 @@ export class CommentController {
     type: Number,
     example: 10,
   })
+  @ApiQuery({
+    name: 'userId',
+    description: '이용자Id : 숫자 or 파라미터X로 보내면 됩니다',
+    type: Number || null,
+    example: 10,
+  })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: '댓글 목록 조회 성공',
@@ -162,12 +169,14 @@ export class CommentController {
     @Query('articleId', ParseIntPipe) articleId: number,
     @Query('cursor', ParseIntPipe) cursor: number,
     @Query('limit', ParseIntPipe) limit: number,
+    @Query('userId', new DefaultValuePipe(null)) userId?: number | null,
   ): Promise<object> {
     try {
       const responseData = await this.commentService.getComments(
         articleId,
         cursor,
         limit,
+        userId,
       );
       return {
         success: true,

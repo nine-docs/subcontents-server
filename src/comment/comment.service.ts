@@ -26,11 +26,15 @@ export class CommentService {
       commentId: Number(creationResult.id),
       content: creationResult.content,
       createdAt: this.utilService.formatDateTime(creationResult.created_at),
-      crecommendCount: Number(creationResult.recommend_count),
     };
   }
 
-  async getComments(articleId: number, cursor: number, limit: number) {
+  async getComments(
+    articleId: number,
+    cursor: number,
+    limit: number,
+    userId: number | null,
+  ) {
     const commentList = await this.prismaService.getCommentsByCursor(
       articleId,
       cursor,
@@ -45,14 +49,35 @@ export class CommentService {
       content: comment.deleted_at ? null : comment.content,
       createdAt: this.utilService.formatDateTime(comment.created_at),
       updatedAt: this.utilService.formatDateTime(comment.updated_at),
-      recommendCount: comment.deleted_at
-        ? null
-        : Number(comment.recommend_count),
+      like: {
+        count: comment.deleted_at ? null : Number(comment.recommend_count),
+        isUserLike: false,
+      },
+      deletedAt: comment.deleted_at
+        ? this.utilService.formatDateTime(comment.deleted_at)
+        : null,
     }));
     const nextCursor =
       responseData.length > 0
         ? responseData[responseData.length - 1].commentId
         : null;
+
+    // isUserLike 업데이트
+    if (userId != null) {
+      const commentIds = responseData.map((item) => item.commentId);
+      const likedCommentIds = await this.prismaService.getCommentRecommendList(
+        userId,
+        commentIds,
+      );
+      responseData.forEach((comment) => {
+        // includes() 메서드 사용 시, 타입을 맞춰줘야 함
+        if (likedCommentIds.includes(comment.commentId)) {
+          // commentId는 number, likedCommentIds의 요소도 number
+          comment.like.isUserLike = true;
+        }
+      });
+    }
+
     return {
       cursor: nextCursor,
       items: responseData,
@@ -75,10 +100,23 @@ export class CommentService {
     );
     return {
       commentId: Number(updateResult.id),
+      authorId: Number(updateResult.user_id),
+      reply: {
+        count: Number(updateResult.reply_count),
+      },
       content: updateResult.content,
       createdAt: this.utilService.formatDateTime(updateResult.created_at),
       updatedAt: this.utilService.formatDateTime(updateResult.updated_at),
-      recommendCount: Number(updateResult.recommend_count),
+      like: {
+        count: Number(updateResult.recommend_count),
+        isUserLike: await this.prismaService.isCommentRecommendedByUser(
+          commentId,
+          userId,
+        ),
+      },
+      deletedAt: updateResult.deleted_at
+        ? this.utilService.formatDateTime(updateResult.deleted_at)
+        : null,
     };
   }
 
@@ -146,6 +184,9 @@ export class CommentService {
         },
         createdAt: this.utilService.formatDateTime(data.created_at),
         updatedAt: this.utilService.formatDateTime(data.updated_at),
+        deletedAt: data.deleted_at
+          ? this.utilService.formatDateTime(data.deleted_at)
+          : null,
       };
     } catch (error) {
       if (
@@ -192,6 +233,9 @@ export class CommentService {
         },
         createdAt: this.utilService.formatDateTime(data.created_at),
         updatedAt: this.utilService.formatDateTime(data.updated_at),
+        deletedAt: data.deleted_at
+          ? this.utilService.formatDateTime(data.deleted_at)
+          : null,
       };
     } catch (error) {
       if (

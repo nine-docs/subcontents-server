@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   ForbiddenException,
   Get,
@@ -127,6 +128,12 @@ export class ReplyController {
     type: Number,
     example: 10,
   })
+  @ApiQuery({
+    name: 'userId',
+    description: '이용자 ID, 패러미터 없어도 됨',
+    type: Number,
+    example: 10,
+  })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: '답글 목록 조회 성공',
@@ -147,15 +154,7 @@ export class ReplyController {
               type: 'object',
               example: {
                 cursor: 21,
-                item: [
-                  {
-                    replyId: 1,
-                    authorId: 1,
-                    content: '답글 내용',
-                    createdAt: '2024-10-27T10:00:00.000Z',
-                    updatedAt: '2024-10-27T10:00:00.000Z',
-                  },
-                ],
+                item: '생략 - 추후 추가',
               },
             },
           },
@@ -167,12 +166,14 @@ export class ReplyController {
     @Query('commentId', ParseIntPipe) commentId: number,
     @Query('cursor', ParseIntPipe) cursor: number,
     @Query('limit', ParseIntPipe) limit: number,
+    @Query('userId', new DefaultValuePipe(null)) userId?: number | null,
   ): Promise<object> {
     try {
       const responseData = await this.replyService.getReplys(
         commentId,
         cursor,
         limit,
+        userId,
       );
       return {
         success: true,
@@ -288,12 +289,7 @@ export class ReplyController {
             },
             data: {
               type: 'object',
-              example: {
-                replyId: 1,
-                content: '답글 내용',
-                createdAt: '2024-10-27T10:00:00.000Z',
-                updatedAt: '2024-10-27T10:00:00.000Z',
-              },
+              example: '생략',
             },
           },
         },

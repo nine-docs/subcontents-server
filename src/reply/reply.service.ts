@@ -37,7 +37,12 @@ export class ReplyService {
     }
   }
 
-  async getReplys(commentId: number, cursor: number, limit: number) {
+  async getReplys(
+    commentId: number,
+    cursor: number,
+    limit: number,
+    userId: number | null,
+  ) {
     if (!(await this.prismaService.isCommentExist(commentId))) {
       throw new NotFoundException();
     }
@@ -52,11 +57,29 @@ export class ReplyService {
       content: reply.content,
       createdAt: this.utilService.formatDateTime(reply.created_at),
       updatedAt: this.utilService.formatDateTime(reply.updated_at),
+      like: {
+        count: Number(reply.recommend_count),
+        isUserLike: false,
+      },
     }));
     const nextCursor =
       responseData.length > 0
         ? responseData[responseData.length - 1].replyId
         : null;
+
+    if (userId != null) {
+      const replyIds = responseData.map((item) => item.replyId);
+      const likedReplyIds = await this.prismaService.getReplyRecommendList(
+        userId,
+        replyIds,
+      );
+      responseData.forEach((reply) => {
+        if (likedReplyIds.includes(reply.replyId)) {
+          reply.like.isUserLike = true;
+        }
+      });
+    }
+
     return {
       cursor: nextCursor,
       items: responseData,
@@ -73,9 +96,17 @@ export class ReplyService {
     const updateResult = await this.prismaService.updateReply(replyId, content);
     return {
       replyId: Number(updateResult.id),
+      authorId: Number(updateResult.user_id),
       content: updateResult.content,
       createdAt: this.utilService.formatDateTime(updateResult.created_at),
       updatedAt: this.utilService.formatDateTime(updateResult.updated_at),
+      like: {
+        count: Number(updateResult.recommend_count),
+        isUserLike: await this.prismaService.isReplyRecommendedByUser(
+          replyId,
+          userId,
+        ),
+      },
     };
   }
 

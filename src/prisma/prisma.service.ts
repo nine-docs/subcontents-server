@@ -218,6 +218,25 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  async getCommentRecommendList(
+    userId: number,
+    commentIdList: number[],
+  ): Promise<number[]> {
+    const commentIds = await this.prisma.commentRecommend.findMany({
+      where: {
+        user_id: userId,
+        comment_id: {
+          in: commentIdList,
+        },
+      },
+      select: {
+        comment_id: true,
+      },
+    });
+
+    return commentIds.map((item) => Number(item.comment_id)); // Number 타입으로 변환하여 반환
+  }
+
   //Reply
   async createReply(
     userId: number,
@@ -374,5 +393,23 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     ) {
       return true;
     } else return false;
+  }
+
+  async getReplyRecommendList(
+    userId: number,
+    replyIdList: number[],
+  ): Promise<number[]> {
+    const replyIds = await this.prisma.replyRecommend.findMany({
+      where: {
+        user_id: userId,
+        reply_id: {
+          in: replyIdList,
+        },
+      },
+      select: {
+        reply_id: true,
+      },
+    });
+    return replyIds.map((item) => Number(item.reply_id));
   }
 }
