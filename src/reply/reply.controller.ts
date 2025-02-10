@@ -26,6 +26,7 @@ import { CreateReplyDto } from './dto/CreateReply.dto';
 import { CreateCommentDto } from 'src/comment/dto/CreateComment.dto';
 import { DeleteReplyDto } from './dto/DeleteReply.dto';
 import { UpdateReplyDto } from './dto/UpdateReply.dto';
+import { CreateReplyRecommendDto } from './dto/ CreateReplyRecommend.dto';
 
 @Controller('reply')
 @ApiTags('Reply API') // API 태그 추가
@@ -319,6 +320,158 @@ export class ReplyController {
       }
       if (error.response?.statusCode === HttpStatus.NOT_FOUND) {
         throw new NotFoundException('잘못된 접근'); // 삭제된 데이터 접근
+      }
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @Post('like')
+  @ApiOperation({
+    summary: '좋아요 누르기',
+    description: '좋아요가 1증가',
+  })
+  @ApiBody({
+    type: CreateReplyRecommendDto, // 요청 본문 DTO
+    description: '좋아요 누를 답글과 유저 정보',
+    schema: {
+      // 스키마 추가 (선택 사항)
+      example: {
+        replyId: 1,
+        userId: 1,
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: '좋아요 생성 성공',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: true,
+            },
+            errorCode: {
+              type: 'string',
+              example: null,
+            },
+            data: {
+              type: 'object',
+              example: '나중에 수정',
+            },
+          },
+        },
+      },
+    },
+  }) // 201 Created 응답
+  async addRecommend(@Body() createRecommendDto: CreateReplyRecommendDto) {
+    try {
+      const { replyId, userId } = createRecommendDto;
+      const responseData = await this.replyService.addReplyRecommend(
+        replyId,
+        userId,
+      );
+      return {
+        // 원래 reposeData에서 받아올 때, 애초에 필요한 데이터만 와야 함. 실수
+        success: true,
+        errorCode: null,
+        data: responseData,
+      };
+    } catch (error) {
+      //에러에 걸렸지만, 에러로 간주되지 않는 경우
+      //return과 throw의 차이점은, controller를 호출한 함수의 try에서 예외가 발생하는지의 차이
+      if (error.response?.statusCode === HttpStatus.CONFLICT) {
+        // ?. 연산자 추가
+        return {
+          success: false,
+          errorCode: '이미 추천한 답글입니다.',
+          data: null,
+        };
+      }
+      //여기서부터 에러처리
+      console.error(error);
+      if (error.response?.statusCode === HttpStatus.NOT_FOUND) {
+        // ?. 연산자 추가
+        throw new NotFoundException();
+      }
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @Delete('like')
+  @ApiOperation({
+    summary: '좋아요 삭제',
+    description: '좋아요를 철회합니다.',
+  })
+  @ApiQuery({
+    name: 'replyId',
+    description: '답글 ID',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'userId',
+    description: '이용자 ID',
+    type: Number,
+    example: 10,
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: '좋아요 취소 성공',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: true,
+            },
+            errorCode: {
+              type: 'string',
+              example: null,
+            },
+            data: {
+              type: 'string',
+              example: '생략 - 추후 추가',
+            },
+          },
+        },
+      },
+    },
+  }) // 201 Created 응답
+  async removeRecommend(
+    @Query('replyId', ParseIntPipe) replyId: number,
+    @Query('userId', ParseIntPipe) userId: number,
+  ) {
+    try {
+      const responseData = await this.replyService.deleteReplyRecommend(
+        replyId,
+        userId,
+      );
+      return {
+        // 원래 reposeData에서 받아올 때, 애초에 필요한 데이터만 와야 함. 실수
+        success: true,
+        errorCode: null,
+        data: responseData,
+      };
+    } catch (error) {
+      //에러에 걸렸지만, 에러로 간주되지 않는 경우
+      //return과 throw의 차이점은, controller를 호출한 함수의 try에서 예외가 발생하는지의 차이
+      if (error.response?.statusCode === HttpStatus.CONFLICT) {
+        // ?. 연산자 추가
+        return {
+          success: false,
+          errorCode: '추천하지 않은 댓글입니다.',
+          data: null,
+        };
+      }
+      //여기서부터 에러처리
+      console.error(error);
+      if (error.response?.statusCode === HttpStatus.NOT_FOUND) {
+        throw new NotFoundException();
       }
       throw new InternalServerErrorException();
     }

@@ -24,7 +24,7 @@ import {
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/CreateComment.dto';
 import { UpdateCommentDto } from './dto/UpdateComment.dto';
-import { CreateRecommendDto } from './dto/CreateRecommend.dto';
+import { CreateCommentRecommendDto } from './dto/CreateCommentRecommend.dto';
 
 @Controller('comment')
 @ApiTags('Comment API') // API 태그 추가
@@ -331,7 +331,7 @@ export class CommentController {
     description: '좋아요가 1증가',
   })
   @ApiBody({
-    type: CreateRecommendDto, // 요청 본문 DTO
+    type: CreateCommentRecommendDto, // 요청 본문 DTO
     description: '좋아요 누를 댓글과 유저 정보',
     schema: {
       // 스키마 추가 (선택 사항)
@@ -366,7 +366,7 @@ export class CommentController {
       },
     },
   }) // 201 Created 응답
-  async addRecommend(@Body() createRecommendDto: CreateRecommendDto) {
+  async addRecommend(@Body() createRecommendDto: CreateCommentRecommendDto) {
     try {
       const { commentId, userId } = createRecommendDto;
       const responseData = await this.commentService.addCommentRecommend(

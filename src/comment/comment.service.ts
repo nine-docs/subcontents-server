@@ -122,13 +122,13 @@ export class CommentService {
     ) {
       throw new NotFoundException(); // soft deleted된 댓글을 한번더 삭제하면 불가능
     }
+    if (
+      await this.prismaService.isCommentRecommendedByUser(commentId, userId)
+    ) {
+      // 이미 추천했다면 권한 없음.
+      throw new ConflictException();
+    }
     try {
-      if (
-        await this.prismaService.isCommentRecommendedByUser(commentId, userId)
-      ) {
-        // 이미 추천했다면 권한 없음.
-        throw new ConflictException();
-      }
       const data = await this.prismaService.addCommentRecommend(
         commentId,
         userId,

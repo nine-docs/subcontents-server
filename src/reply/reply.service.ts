@@ -1,6 +1,7 @@
 import {
   ConflictException,
   ForbiddenException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -92,21 +93,70 @@ export class ReplyService {
     if (!(await this.prismaService.isReplyExist(replyId))) {
       throw new NotFoundException();
     }
-
     if (await this.prismaService.isReplyRecommendedByUser(replyId, userId)) {
       // 이미 추천했다면 권한 없음.
       throw new ConflictException();
     }
-    const data = await this.prismaService.addReplyRecommend(replyId, userId);
-    return {
-      // data 반환
-    };
+    try {
+      const data = await this.prismaService.addReplyRecommend(replyId, userId);
+      return {
+        replyId: Number(data.id),
+        authorId: Number(data.user_id),
+        commentId: Number(data.comment_id),
+        content: data.content,
+        like: {
+          count: Number(data.recommend_count),
+          isUserLike: true,
+        },
+        createdAt: this.utilService.formatDateTime(data.created_at),
+        updatedAt: this.utilService.formatDateTime(data.updated_at),
+        // data 반환
+      };
+    } catch (error) {
+      if (
+        error.code == 'P2002' ||
+        error.response?.statusCode === HttpStatus.CONFLICT
+      ) {
+        throw new ConflictException();
+      }
+      throw new InternalServerErrorException();
+    }
   }
 
   async deleteReplyRecommend(replyId: number, userId: number) {
     if (!(await this.prismaService.isReplyExist(replyId))) {
       throw new NotFoundException();
     }
-    return;
+    if (!(await this.prismaService.isReplyRecommendedByUser(replyId, userId))) {
+      // 추천이 없으면 권한 없음.
+      throw new ConflictException();
+    }
+    try {
+      const data = await this.prismaService.deleteReplyRecommend(
+        replyId,
+        userId,
+      );
+      return {
+        replyId: Number(data.id),
+        authorId: Number(data.user_id),
+        commentId: Number(data.comment_id),
+        content: data.content,
+        like: {
+          count: Number(data.recommend_count),
+          isUserLike: false,
+        },
+        createdAt: this.utilService.formatDateTime(data.created_at),
+        updatedAt: this.utilService.formatDateTime(data.updated_at),
+        // data 반환
+      };
+    } catch (error) {
+      if (
+        error.code == 'P2002' ||
+        error.response?.statusCode === HttpStatus.CONFLICT
+      ) {
+        throw new ConflictException();
+      }
+      throw new InternalServerErrorException();
+    }
   }
 }
