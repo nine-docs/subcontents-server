@@ -26,6 +26,7 @@ import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/CreateComment.dto';
 import { UpdateCommentDto } from './dto/UpdateComment.dto';
 import { CreateCommentRecommendDto } from './dto/CreateCommentRecommend.dto';
+// import { SortOrder } from './enums/comment-sort.enum';
 
 @Controller('comment')
 @ApiTags('Comment API') // API 태그 추가
@@ -128,6 +129,18 @@ export class CommentController {
     type: Number || null,
     example: 10,
   })
+  @ApiQuery({
+    name: 'sort',
+    description: 'sort 기준입니다. oldest, likes를 변수로 받습니다.',
+    type: Number || null,
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'userId',
+    description: '이용자Id : 숫자 or 파라미터X로 보내면 됩니다',
+    type: Number || null,
+    example: 10,
+  })
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: '댓글 목록 조회 성공',
@@ -169,6 +182,7 @@ export class CommentController {
     @Query('articleId', ParseIntPipe) articleId: number,
     @Query('cursor', ParseIntPipe) cursor: number,
     @Query('limit', ParseIntPipe) limit: number,
+    // @Query('sort') sort: SortOrder,
     @Query('userId', new DefaultValuePipe(null)) userId?: number | null,
   ): Promise<object> {
     try {
