@@ -103,6 +103,7 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
         where: { id: cursor },
       }); // 기준 comment 가져오기
       if (cursorComment == null) {
+        //get most recommend comment
       }
       const comments = await this.prisma.comment.findMany({
         where: {
