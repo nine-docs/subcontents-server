@@ -112,12 +112,12 @@ export class CommentController {
     type: Number,
     example: 1,
   })
-  @ApiQuery({
-    name: 'cursor',
-    description: '커서 댓글 ID (첫페이지면 0)',
-    type: Number,
-    example: 1,
-  })
+  // @ApiQuery({
+  //   name: 'cursor',
+  //   description: '커서 댓글 ID (첫페이지면 0)',
+  //   type: Number,
+  //   example: 1,
+  // })
   @ApiQuery({
     name: 'limit',
     description: '가져올 개수',
@@ -169,14 +169,14 @@ export class CommentController {
   })
   async getCommentsSortByRecommend(
     @Query('articleId', ParseIntPipe) articleId: number,
-    @Query('cursor', ParseIntPipe) cursor: number,
+    // @Query('cursor', ParseIntPipe) cursor: number,
     @Query('limit', ParseIntPipe) limit: number,
     @Query('userId', new DefaultValuePipe(null)) userId?: number | null,
   ): Promise<object> {
     try {
       const responseData = await this.commentService.getComments(
         articleId,
-        cursor,
+        0, //cursor로 대체
         limit,
         userId,
         SortOrder.Likes,
