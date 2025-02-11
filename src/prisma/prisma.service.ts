@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Bookmark, Comment, Prisma, PrismaClient, Reply } from '@prisma/client';
+import { SortOrder } from 'src/comment/enums/comment-sort.enum';
 
 @Injectable()
 export class PrismaService implements OnModuleInit, OnModuleDestroy {
@@ -84,17 +85,43 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     articleId: number,
     cursor: number,
     limit: number,
+    sort: SortOrder,
   ): Promise<Comment[]> {
     // created 순이 아닌, pkey 순서대로.
-    const where = {
-      article_id: articleId,
-      ...(cursor && { id: { gt: cursor } }), // cursor가 있는 경우, id가 cursor보다 큰 데이터만 조회
-    };
-    return await this.prisma.comment.findMany({
-      where,
-      take: limit, // limit 개수만큼 조회
-      orderBy: { id: 'asc' }, // id 기준으로 오름차순 정렬 (cursor 기반 페이지네이션에 필수)
-    });
+    if (sort === SortOrder.Oldest) {
+      const where = {
+        article_id: articleId,
+        ...(cursor && { id: { gt: cursor } }), // cursor가 있는 경우, id가 cursor보다 큰 데이터만 조회
+      };
+      return await this.prisma.comment.findMany({
+        where,
+        take: limit, // limit 개수만큼 조회
+        orderBy: { id: 'asc' }, // id 기준으로 오름차순 정렬 (cursor 기반 페이지네이션에 필수)
+      });
+    } else if (sort === SortOrder.Likes) {
+      const cursorComment = await this.prisma.comment.findUnique({
+        where: { id: cursor },
+      }); // 기준 comment 가져오기
+      if (cursorComment == null) {
+      }
+      const comments = await this.prisma.comment.findMany({
+        where: {
+          OR: [
+            { recommend_count: { lt: cursorComment.recommend_count } }, // 추천수가 cursor보다 작은 경우
+            {
+              recommend_count: cursorComment.recommend_count,
+              id: { gt: cursorComment.id }, // 추천수가 cursor와 같은 경우, id가 cursor보다 큰 경우
+            },
+          ], // cursor 기반 페이지네이션
+        },
+        take: limit, // limit 개수만큼 조회
+        orderBy: [
+          { recommend_count: 'desc' }, // recommend_count 내림차순 정렬
+          { id: 'asc' }, // id 오름차순 정렬 (같은 recommend_count일 경우)
+        ],
+      });
+      return comments;
+    }
   }
 
   //해당 댓글의 답글개수 확인

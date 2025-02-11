@@ -26,6 +26,7 @@ import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/CreateComment.dto';
 import { UpdateCommentDto } from './dto/UpdateComment.dto';
 import { CreateCommentRecommendDto } from './dto/CreateCommentRecommend.dto';
+import { SortOrder } from './enums/comment-sort.enum';
 // import { SortOrder } from './enums/comment-sort.enum';
 
 @Controller('comment')
@@ -100,10 +101,10 @@ export class CommentController {
     }
   }
 
-  @Get('/list')
+  @Get('/list/like-sort')
   @ApiOperation({
-    summary: '게시글 댓글 목록 조회',
-    description: '특정 게시글의 댓글 목록을 조회합니다.',
+    summary: '게시글 댓글 목록 조회 (추천순)',
+    description: '특정 게시글의 댓글 목록을 추천순으로 조회합니다.',
   })
   @ApiQuery({
     name: 'articleId',
@@ -129,10 +130,95 @@ export class CommentController {
     type: Number || null,
     example: 10,
   })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: '댓글 목록 조회 성공',
+    content: {
+      'application/json': {
+        schema: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: true,
+            },
+            errorCode: {
+              type: 'number',
+              example: null,
+            },
+            data: {
+              type: 'object',
+              example: {
+                cursor: 21,
+                item: [
+                  {
+                    commentId: 1,
+                    authorId: 1,
+                    reply: { count: 5 },
+                    createdAt: '2024-10-27T10:00:00.000Z',
+                    content: '댓글 내용',
+                    updatedAt: '2024-10-27T10:00:00.000Z',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+  async getCommentsSortByRecommend(
+    @Query('articleId', ParseIntPipe) articleId: number,
+    @Query('cursor', ParseIntPipe) cursor: number,
+    @Query('limit', ParseIntPipe) limit: number,
+    @Query('userId', new DefaultValuePipe(null)) userId?: number | null,
+  ): Promise<object> {
+    try {
+      const responseData = await this.commentService.getComments(
+        articleId,
+        cursor,
+        limit,
+        userId,
+        SortOrder.Likes,
+      );
+      return {
+        success: true,
+        errorCode: null,
+        data: responseData,
+      };
+    } catch (error) {
+      console.error(error);
+      //이용자에게 반환하기 위한 상정 이외의 에러
+      if (error.response?.statusCode === HttpStatus.NOT_FOUND) {
+        // 필요 없는 코드
+        // 근데, 사실 댓글이 없는 건지, 존재하지 않는 게시글인지를 확인 불가
+        // 삭제된 댓글은 볼 수 있는데, 삭제된 게시글은 못 봄 => 내가 예외처리 불가능
+      }
+      throw new InternalServerErrorException();
+    }
+  }
+
+  @Get('/list')
+  @ApiOperation({
+    summary: '게시글 댓글 목록 조회',
+    description: '특정 게시글의 댓글 목록을 조회합니다.',
+  })
   @ApiQuery({
-    name: 'sort',
-    description: 'sort 기준입니다. oldest, likes를 변수로 받습니다.',
-    type: Number || null,
+    name: 'articleId',
+    description: '게시글 ID',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'cursor',
+    description: '커서 댓글 ID (첫페이지면 0)',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: '가져올 개수',
+    type: Number,
     example: 10,
   })
   @ApiQuery({
@@ -182,7 +268,6 @@ export class CommentController {
     @Query('articleId', ParseIntPipe) articleId: number,
     @Query('cursor', ParseIntPipe) cursor: number,
     @Query('limit', ParseIntPipe) limit: number,
-    // @Query('sort') sort: SortOrder,
     @Query('userId', new DefaultValuePipe(null)) userId?: number | null,
   ): Promise<object> {
     try {

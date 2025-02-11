@@ -1,5 +1,4 @@
-// export enum SortOrder {
-//   Newest = 'newest',
-//   Oldest = 'oldest',
-//   Likes = 'likes',
-// }
+export enum SortOrder {
+  Oldest = 'oldest',
+  Likes = 'likes',
+}

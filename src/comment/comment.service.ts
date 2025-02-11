@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UtilService } from 'src/utils/util.service';
+import { SortOrder } from './enums/comment-sort.enum';
 
 @Injectable()
 export class CommentService {
@@ -34,11 +35,13 @@ export class CommentService {
     cursor: number,
     limit: number,
     userId: number | null,
+    sort: SortOrder = SortOrder.Oldest,
   ) {
     const commentList = await this.prismaService.getCommentsByCursor(
       articleId,
       cursor,
       limit,
+      sort,
     );
     const responseData = commentList.map((comment) => ({
       commentId: Number(comment.id),
