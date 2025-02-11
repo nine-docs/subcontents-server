@@ -99,29 +99,41 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
         orderBy: { id: 'asc' }, // id 기준으로 오름차순 정렬 (cursor 기반 페이지네이션에 필수)
       });
     } else if (sort === SortOrder.Likes) {
-      const cursorComment = await this.prisma.comment.findUnique({
-        where: { id: cursor },
-      }); // 기준 comment 가져오기
-      if (cursorComment == null) {
-        //get most recommend comment
+      //첫페이지인 경우
+      if (cursor == 0) {
+        const comments = await this.prisma.comment.findMany({
+          where: { article_id: articleId },
+          take: limit, // limit 개수만큼 조회
+          orderBy: [
+            { recommend_count: 'desc' }, // recommend_count 내림차순 정렬
+            { id: 'asc' }, // id 오름차순 정렬 (같은 recommend_count일 경우)
+          ],
+        });
+        return comments;
+      } else {
+        //그 다음 페이지인 경우
+        const cursorComment = await this.prisma.comment.findUnique({
+          where: { id: cursor },
+        });
+        const comments = await this.prisma.comment.findMany({
+          where: {
+            article_id: articleId,
+            OR: [
+              { recommend_count: { lt: cursorComment.recommend_count } }, // 추천수가 cursor보다 작은 경우
+              {
+                recommend_count: cursorComment.recommend_count,
+                id: { gt: cursorComment.id }, // 추천수가 cursor와 같은 경우, id가 cursor보다 큰 경우
+              },
+            ], // cursor 기반 페이지네이션
+          },
+          take: limit, // limit 개수만큼 조회
+          orderBy: [
+            { recommend_count: 'desc' }, // recommend_count 내림차순 정렬
+            { id: 'asc' }, // id 오름차순 정렬 (같은 recommend_count일 경우)
+          ],
+        });
+        return comments;
       }
-      const comments = await this.prisma.comment.findMany({
-        where: {
-          OR: [
-            { recommend_count: { lt: cursorComment.recommend_count } }, // 추천수가 cursor보다 작은 경우
-            {
-              recommend_count: cursorComment.recommend_count,
-              id: { gt: cursorComment.id }, // 추천수가 cursor와 같은 경우, id가 cursor보다 큰 경우
-            },
-          ], // cursor 기반 페이지네이션
-        },
-        take: limit, // limit 개수만큼 조회
-        orderBy: [
-          { recommend_count: 'desc' }, // recommend_count 내림차순 정렬
-          { id: 'asc' }, // id 오름차순 정렬 (같은 recommend_count일 경우)
-        ],
-      });
-      return comments;
     }
   }
 
