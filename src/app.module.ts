@@ -6,7 +6,6 @@ import { PrismaService } from './prisma/prisma.service';
 import { BookmarkModule } from './bookmark/bookmark.module';
 import { ReplyModule } from './reply/reply.module';
 import { CommentModule } from './comment/comment.module';
-import { BestCommentReplyModule } from './best-comment-reply/best-comment-reply.module';
 
 @Module({
   imports: [
@@ -17,7 +16,6 @@ import { BestCommentReplyModule } from './best-comment-reply/best-comment-reply.
     BookmarkModule,
     ReplyModule,
     CommentModule,
-    BestCommentReplyModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
